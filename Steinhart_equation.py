@@ -1,7 +1,9 @@
 import math
 import pandas as pd
 
-def calculate_steinhart_hart(start_res, end_res, step, a, b, c):
+def calculate_steinhart_hart(start_res, end_res, step, a, b, c, fixed_resistance, voltage):
+    
+    # emular voltaje de salida. 
     """
     Calcula la ecuación de Steinhart-Hart para un rango de valores de resistencias.
     
@@ -37,6 +39,8 @@ step_resistance = 5
 a = 0.8740227793e-3
 b = 2.537895771e-4
 c = 1.823911984e-7
+fixed_resistance = 10000
+voltage = 3.3
 Sensor_name = "NCP15XH103F"
 
 result_df = calculate_steinhart_hart(start_resistance, end_resistance, step_resistance, a, b, c)
