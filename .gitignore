@@ -1,3 +1,16 @@
- .ipynb_checkpoints/
- *csv
- /venv
+# Ignorar archivos temporales y de configuración de Jupyter
+.ipynb_checkpoints/
+
+# Ignorar todos los archivos CSV
+*.csv
+
+# Ignorar el entorno virtual de Python
+/venv
+
+# Otros posibles archivos o carpetas a ignorar
+__pycache__/
+*.py[cod]
+*.log
+.DS_Store
+.env
+*.env
