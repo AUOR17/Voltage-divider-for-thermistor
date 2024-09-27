@@ -1,93 +1,112 @@
 import math
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
-def voltage_divisor_altern_3950(in_voltage, r_25_1,temperatura_1, r_25_2, temperatura_2, resistencia_fija):
-    resistencia_temper_1 = r_25_1
+def voltage_divider_3950(in_voltage: float, r_25_1: float, temp_1: float, r_25_2: float, temp_2: float, fixed_resistance: float) -> None:
+    resistance_temp_1 = r_25_1
     
-    #se calcula el divisor de voltaje con el valor de r_25_1
-    voltage_divisor_out_1 = in_voltage * (resistencia_temper_1/ (resistencia_temper_1+resistencia_fija)) 
-    resistencia_temper_2 = r_25_2
+    # Calculate the voltage divider with r_25_1
+    voltage_out_1 = in_voltage * (resistance_temp_1 / (resistance_temp_1 + fixed_resistance)) 
     
-    #se calcula el divisor de voltaje con el valor de r_25_2
-    voltage_divisor_out_2 = in_voltage * (resistencia_temper_2/ (resistencia_temper_2+resistencia_fija))
+    resistance_temp_2 = r_25_2
     
-    #Se calcula la diferencia de voltaje entre ambos divisores, entre mas diferencia halla mejor sera la precision del termistor
-    voltage_var = voltage_divisor_out_2 - voltage_divisor_out_1 
+    # Calculate the voltage divider with r_25_2
+    voltage_out_2 = in_voltage * (resistance_temp_2 / (resistance_temp_2 + fixed_resistance))
     
-    #Se imprimen los valores de r_25_1
-    print(f'1. Una resistencia de temperatura a {temperatura_1}°C con valor {resistencia_temper_1}\n')
-    print(f'El divisor de voltaje es de {voltage_divisor_out_1} V \nTiene una resistencia fija de {resistencia_fija} \n')
+    # Calculate the absolute difference between the two voltage dividers
+    voltage_difference = abs(voltage_out_2 - voltage_out_1)
     
-    #Se imprimen los valores de r_25_2
-    print(f'2. Una resistencia de temperatura a {temperatura_2}°C con valor {resistencia_temper_2}\n')
-    print(f'El divisor de voltaje es de {voltage_divisor_out_2} V \nTiene una resistencia fija de {resistencia_fija} \n')
+    # Print the values for r_25_1
+    print(f'1. Resistance at {temp_1}°C: {resistance_temp_1} Ohms\n')
+    print(f'The voltage divider output is {voltage_out_1} V with a fixed resistance of {fixed_resistance} Ohms\n')
     
+    # Print the values for r_25_2
+    print(f'2. Resistance at {temp_2}°C: {resistance_temp_2} Ohms\n')
+    print(f'The voltage divider output is {voltage_out_2} V with a fixed resistance of {fixed_resistance} Ohms\n')
     
-    #Se imprime la diferencia de voltaje
-    print(f'\nLa diferencia de voltaje es de : {voltage_var} V entre {temperatura_1}°C y {temperatura_2}°C del termistor\n')
-    
-def find_fix_resistance(res_temp_1,temp_1,res_temp_2,temp_2,aum,lim):
-    
-    #voltaje de entrada
+    # Print the voltage difference
+    print(f'\nThe voltage difference between {temp_1}°C and {temp_2}°C is: {voltage_difference} V\n')
+
+def find_optimal_fixed_resistance(res_temp_1: float, temp_1: float, res_temp_2: float, temp_2: float, step: float, limit: float) -> tuple:
+    # Input voltage
     in_voltage = 3.3
-    
-    #se inicializa la resistencia
-    fix_res = 0
-    
-    #Se crea un array para los valores de la resistencia
-    data_fix_res = []
-    
-    #Se crea un array para los valores de la diferencia de voltaje
-    data_diff_voltage = []
-    
-    #Comienza el ciclo de asignar los valores de la resistencia y seguira hasta que los valores sean iguales o mayores a lim
-    while fix_res < lim:
-        
-        #se agrega el valor de la resistencia fija al array
-        data_fix_res.append(fix_res)
-        
-        #se calcula el divisor de voltaje de acuerdo a las resistencias del termistor a ciertas temperaturas
-        voltage_divisor_out_1 = in_voltage * (res_temp_1 / (res_temp_1 + fix_res))
-        voltage_divisor_out_2 = in_voltage * (res_temp_2 / (res_temp_2 + fix_res))
-        
-        #se calcula la diferencia de voltaje
-        diff_voltage = voltage_divisor_out_1 - voltage_divisor_out_2
-        
-        #se aumenta el valor de la resitencia fija de acuerdo al parametro que se coloca
-        fix_res += aum
-        
-        #se agrega el valor de la diferencia de voltaje al array
-        data_diff_voltage.append(diff_voltage)
-        
-    #regresa ambos arrays
-    return data_fix_res, data_diff_voltage
 
+    # Initialize fixed resistance
+    fixed_res = step  # Ensure that it starts at a non-zero value
+
+    # Arrays for storing fixed resistance values and voltage differences
+    fixed_res_data = []
+    voltage_diff_data = []
+
+    prev_diff_voltage = 0
+
+    # Loop through fixed resistance values up to the limit
+    while fixed_res < limit:
+
+        # Store current fixed resistance value
+        fixed_res_data.append(fixed_res)
+
+        # Calculate voltage divider for both temperatures
+        voltage_out_1 = in_voltage * (res_temp_1 / (res_temp_1 + fixed_res))
+        voltage_out_2 = in_voltage * (res_temp_2 / (res_temp_2 + fixed_res))
+
+        # Calculate the absolute difference in voltage
+        diff_voltage = abs(voltage_out_1 - voltage_out_2)
+
+        # Stop if the change in voltage difference is below tolerance
+        if abs(diff_voltage - prev_diff_voltage) < 1e-6:
+            break
+
+        prev_diff_voltage = diff_voltage
+
+        # Add the voltage difference to the data
+        voltage_diff_data.append(diff_voltage)
+
+        # Increment the fixed resistance
+        fixed_res += step
+
+    return np.array(fixed_res_data), np.array(voltage_diff_data)
+
+# Modified main function to call voltage_divider_3950 again with the optimal resistance
 if __name__ == '__main__':
     
-    """ La diferencia entre la primera y la segunda funcion radica que la segunda busca una resistencia ideal, 
-    pero esta resistencia no necesariamente existe, por ello la primera funcion busca la diferencia de voltaje con una resistencia
-    especifica y asi se puede usar con las resistencias que existen o son comerciales
-
-    """
+    """ The first function calculates the voltage difference with a specific fixed resistance, 
+    while the second function searches for an ideal resistance that maximizes the voltage difference. 
+    The first function is useful when using commercially available resistances. """
     
-    print("Divisor de voltaje y resistencias comerciales: ")
-    voltage_divisor_altern_3950(3.3, 19920, 10,1261,80,1000)
+    print("Voltage Divider with Commercial Fixed Resistances: ")
+    voltage_divider_3950(3.3, 19920, 10, 1261, 80, 1000)
     
-    #se convierte el a un numpy array
-    fix_res = np.array(find_fix_resistance(19920, 10,1261,80,10e+3,1e+6))
-
-    #se aplica la transpuesta para que las columnas sean la que tiene el mayor numero de registros
-    fix_res = np.transpose(fix_res)
-
-    #se crea un DataFrame y se le asigna el nombte de las columnas
-    diff_voltage = pd.DataFrame(fix_res,columns = ['Fix Resistance','Voltage Difference'])
-
-    #se busca el renglon donde la diferencia de voltaje sea la mayor 
-    index_max = diff_voltage.index[diff_voltage['Voltage Difference']==diff_voltage['Voltage Difference'].max()].tolist()
-
-    #se imprime el renglon que se ha encontrado
-    print("Resistencia ideal y diferencia de voltaje: ")
-    print(diff_voltage.iloc[index_max])
+    # Find the optimal resistance and voltage differences
+    fixed_res, diff_voltage = find_optimal_fixed_resistance(19920, 10, 1261, 80, 1e+3, 1e+6)
     
- 
+    # Create a DataFrame to hold the results
+    results_df = pd.DataFrame({
+        'Fixed Resistance (Ohms)': fixed_res,
+        'Voltage Difference (V)': diff_voltage
+    })
+    
+    # Find the maximum voltage difference and corresponding resistance
+    index_max = results_df['Voltage Difference (V)'].idxmax()
+    optimal_resistance = results_df.iloc[index_max]['Fixed Resistance (Ohms)']
+    
+    # Print the row with the maximum voltage difference
+    print("\nOptimal Fixed Resistance and Voltage Difference: ")
+    print(results_df.iloc[index_max])
+    
+    # Call voltage_divider_3950 with the optimal fixed resistance found
+    print("\nCalling voltage_divider_3950 with the optimal fixed resistance:")
+    voltage_divider_3950(3.3, 19920, 10, 1261, 80, optimal_resistance)
+
+    
+    # Plot the voltage difference as a function of fixed resistance
+    plt.plot(fixed_res, diff_voltage)
+    plt.xlabel('Fixed Resistance (Ohms)')
+    plt.ylabel('Voltage Difference (V)')
+    plt.title('Voltage Difference vs Fixed Resistance')
+    plt.grid(True)
+    plt.show()
+    
+   
+
