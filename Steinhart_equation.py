@@ -43,6 +43,6 @@ fixed_resistance = 10000
 voltage = 3.3
 Sensor_name = "NCP15XH103F"
 
-result_df = calculate_steinhart_hart(start_resistance, end_resistance, step_resistance, a, b, c)
+result_df = calculate_steinhart_hart(start_resistance, end_resistance, step_resistance, a, b, c, fixed_resistance, voltage)
 result_df.to_csv(Sensor_name + ".csv", index=True)
 print(result_df.head())
