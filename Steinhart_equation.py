@@ -33,15 +33,15 @@ def calculate_steinhart_hart(start_res, end_res, step, a, b, c, fixed_resistance
     return df
 
 # Ejemplo de uso
-start_resistance = 530
-end_resistance = 195652
+start_resistance = 1261
+end_resistance = 19920
 step_resistance = 5
-a = 0.8740227793e-3
-b = 2.537895771e-4
-c = 1.823911984e-7
-fixed_resistance = 10000
+a = 1.113232463e-3
+b = 2.367687547e-4
+c = 0.7687201539e-7
+fixed_resistance = 5100
 voltage = 3.3
-Sensor_name = "NCP15XH103F"
+Sensor_name = "SCF50"
 
 result_df = calculate_steinhart_hart(start_resistance, end_resistance, step_resistance, a, b, c, fixed_resistance, voltage)
 result_df.to_csv(Sensor_name + ".csv", index=True)

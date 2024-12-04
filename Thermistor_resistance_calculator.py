@@ -43,10 +43,6 @@ def find_optimal_fixed_resistance(res_temp_1: float, temp_1: float, res_temp_2: 
 
     # Loop through fixed resistance values up to the limit
     while fixed_res < limit:
-
-        # Store current fixed resistance value
-        fixed_res_data.append(fixed_res)
-
         # Calculate voltage divider for both temperatures
         voltage_out_1 = in_voltage * (res_temp_1 / (res_temp_1 + fixed_res))
         voltage_out_2 = in_voltage * (res_temp_2 / (res_temp_2 + fixed_res))
@@ -54,14 +50,15 @@ def find_optimal_fixed_resistance(res_temp_1: float, temp_1: float, res_temp_2: 
         # Calculate the absolute difference in voltage
         diff_voltage = abs(voltage_out_1 - voltage_out_2)
 
+        # Store current fixed resistance value and voltage difference
+        fixed_res_data.append(fixed_res)
+        voltage_diff_data.append(diff_voltage)
+
         # Stop if the change in voltage difference is below tolerance
         if abs(diff_voltage - prev_diff_voltage) < 1e-6:
             break
 
         prev_diff_voltage = diff_voltage
-
-        # Add the voltage difference to the data
-        voltage_diff_data.append(diff_voltage)
 
         # Increment the fixed resistance
         fixed_res += step
@@ -76,10 +73,10 @@ if __name__ == '__main__':
     The first function is useful when using commercially available resistances. """
     
     print("Voltage Divider with Commercial Fixed Resistances: ")
-    voltage_divider_3950(3.3, 19920, 10, 1261, 80, 1000)
+    voltage_divider_3950(3.3, 949.73, 150, 87.14, 220, 1000)
     
     # Find the optimal resistance and voltage differences
-    fixed_res, diff_voltage = find_optimal_fixed_resistance(19920, 10, 1261, 80, 1e+3, 1e+6)
+    fixed_res, diff_voltage = find_optimal_fixed_resistance(949.73, 150, 87.14, 220, 50, 1e+6)
     
     # Create a DataFrame to hold the results
     results_df = pd.DataFrame({
@@ -97,7 +94,7 @@ if __name__ == '__main__':
     
     # Call voltage_divider_3950 with the optimal fixed resistance found
     print("\nCalling voltage_divider_3950 with the optimal fixed resistance:")
-    voltage_divider_3950(3.3, 19920, 10, 1261, 80, optimal_resistance)
+    voltage_divider_3950(3.3, 949.73, 150, 87.14, 220, optimal_resistance)
 
     
     # Plot the voltage difference as a function of fixed resistance
