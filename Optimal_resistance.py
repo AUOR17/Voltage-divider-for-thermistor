@@ -79,38 +79,54 @@ def plot_analysis(temps, voltages, fixed_res, title):
     
 
 if __name__ == '__main__':
-    # Example parameters
-    R25 = 10233  # 10kΩ at 25°C
-    BETA = 3425  # Beta coefficient
-    TEMP_RANGE = (0, 300)  # Temperature range in °C
-    VIN = 3.3  # Input voltage
+    # Parameters for both thermistors
+    R25_A = 10000  # Thermistor A
+    BETA_A = 3492
+    R25_B = 10233  # Thermistor B (ejemplo)
+    BETA_B = 3435
+    TEMP_RANGE = (0, 300)
+    VIN = 3.3
+
+    # Find optimal resistances for both thermistors
+    optimal_res_A, results_df_A = find_optimal_fixed_resistance(R25_A, BETA_A, TEMP_RANGE)
+    optimal_res_B, results_df_B = find_optimal_fixed_resistance(R25_B, BETA_B, TEMP_RANGE)
     
-    # Find optimal resistance
-    optimal_res, results_df = find_optimal_fixed_resistance(R25, BETA, TEMP_RANGE)
-    commercial_res = find_nearest_commercial(optimal_res)
+    # Find commercial resistances
+    commercial_res_A = find_nearest_commercial(optimal_res_A)
+    commercial_res_B = find_nearest_commercial(optimal_res_B)
     
-    # Analyze with optimal resistance
-    temps, voltages, sensitivity, v_range = voltage_divider_analysis(
-        VIN, R25, BETA, TEMP_RANGE, optimal_res)
+    # Analysis of thermistor A with its optimal resistance
+    print("\nBehavior of Thermistor A (current thermistor):")
+    print(f"Temperature Range: {TEMP_RANGE[0]}°C to {TEMP_RANGE[1]}°C")
+    temps_A, voltages_A, sensitivity_A, v_range_A = voltage_divider_analysis(
+        VIN, R25_A, BETA_A, TEMP_RANGE, optimal_res_A)
+    print(f"Optimal theoretical resistance: {optimal_res_A:.0f}Ω")
+    print(f"Nearest commercial resistance: {commercial_res_A}Ω")
+    print(f"Voltage range: {v_range_A:.3f}V")
+    print(f"Average sensitivity: {sensitivity_A*1000:.2f}mV/°C")
     
-    print(f"\nOptimal theoretical resistance: {optimal_res:.0f}Ω")
-    print(f"Nearest commercial resistance: {commercial_res}Ω")
-    print(f"Voltage range: {v_range:.3f}V")
-    print(f"Average sensitivity: {sensitivity*1000:.2f}mV/°C")
+    # Analysis of thermistor B with its optimal resistance
+    print("\nBehavior of Thermistor B (EPW proposal):")
+    print(f"Temperature Range: {TEMP_RANGE[0]}°C to {TEMP_RANGE[1]}°C")
+    temps_B, voltages_B, sensitivity_B, v_range_B = voltage_divider_analysis(
+        VIN, R25_B, BETA_B, TEMP_RANGE, optimal_res_B)
+    print(f"Optimal theoretical resistance: {optimal_res_B:.0f}Ω")
+    print(f"Nearest commercial resistance: {commercial_res_B}Ω")
+    print(f"Voltage range: {v_range_B:.3f}V")
+    print(f"Average sensitivity: {sensitivity_B*1000:.2f}mV/°C")
     
-    # Plot results
-    plot_analysis(temps, voltages, optimal_res, "Voltage Divider Response with Optimal Resistance")
+    # Analysis of thermistor B with resistance from A
+    print(f"\nBehavior of Thermistor B (EPW proposal) with R_A (current resistance) = {commercial_res_A:.0f}Ω:")
+    print(f"Temperature Range: {TEMP_RANGE[0]}°C to {TEMP_RANGE[1]}°C")
+    temps_B_withRA, voltages_B_withRA, sensitivity_B_withRA, v_range_B_withRA = voltage_divider_analysis(
+        VIN, R25_B, BETA_B, TEMP_RANGE, commercial_res_A)
+    print(f"Voltage range: {v_range_B_withRA:.3f}V")
+    print(f"Average sensitivity: {sensitivity_B_withRA*1000:.2f}mV/°C")
     
-    # Also analyze with commercial resistance
-    temps, voltages, sensitivity, v_range = voltage_divider_analysis(
-        VIN, R25, BETA, TEMP_RANGE, commercial_res)
-    plot_analysis(temps, voltages, commercial_res, "Voltage Divider Response with Commercial Resistance")
-    
-    # Plot optimization results
-    plt.figure(figsize=(10, 6))
-    plt.plot(results_df['resistance'], results_df['score'])
-    plt.xlabel('Fixed Resistance (Ω)')
-    plt.ylabel('Optimization Score')
-    plt.title('Optimization Score vs Fixed Resistance')
-    plt.grid(True)
-    plt.show()
+    # Analysis of thermistor A with resistance from B
+    print(f"\nBehavior of Thermistor A (current thermistor) with R_B (EPW proposal) = {commercial_res_B:.0f}Ω:")
+    print(f"Temperature Range: {TEMP_RANGE[0]}°C to {TEMP_RANGE[1]}°C")
+    temps_A_withRB, voltages_A_withRB, sensitivity_A_withRB, v_range_A_withRB = voltage_divider_analysis(
+        VIN, R25_A, BETA_A, TEMP_RANGE, commercial_res_B)
+    print(f"Voltage range: {v_range_A_withRB:.3f}V")
+    print(f"Average sensitivity: {sensitivity_A_withRB*1000:.2f}mV/°C")
